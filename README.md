@@ -11,6 +11,7 @@ After unzipping you should see this, all at the same level:
     index.html   story.html   menu.html   drinks.html
     styles.css   script.js    menu-data.js   drinks-data.js
     assets/      robots.txt   README.md      PHOTOS.md
+    .nojekyll    .gitattributes
 
 Open `index.html`. If `assets/` isn't there beside the HTML, the photos won't load.
 
@@ -285,3 +286,21 @@ way.
 Drop the photos into `assets/photos/` first — see PHOTOS.md. Any slot without a file shows a
 "PHOTO COMING" tile, which is fine mid-build but you'll want the real ones for a client
 meeting.
+
+
+## Hosting on GitHub Pages
+
+`.nojekyll` is in the root on purpose. Without it, GitHub Pages runs every push through Jekyll,
+which ignores files and folders whose names begin with an underscore and can quietly drop
+assets. This site needs no build step at all — the empty `.nojekyll` file tells Pages to serve
+the files exactly as they are.
+
+`.gitattributes` marks the photos and logos as binary so Git never tries to "fix" line endings
+inside them, which would corrupt them.
+
+Both files start with a dot, so your operating system may hide them. On Windows, turn on
+**View → Hidden items** in File Explorer before copying files into the repo, or they'll be left
+behind.
+
+One repository serves one custom domain, so put this in its own repo rather than a subfolder of
+the repo that serves lucidlydigital.com.

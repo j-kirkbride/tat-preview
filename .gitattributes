@@ -1,0 +1,5 @@
+# Photos and logos are binary — never let Git rewrite line endings in them.
+*.jpg binary
+*.png binary
+*.ico binary
+*.mp4 binary
