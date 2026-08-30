@@ -1,0 +1,5 @@
+# PREVIEW ONLY — delete this file (or replace the contents) before launch.
+# Keeps the staging copy out of search results so it can't compete with
+# the live tatitalian.net.
+User-agent: *
+Disallow: /
