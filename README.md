@@ -68,9 +68,12 @@ original vector (.ai/.eps/.svg), an inline SVG would be sharper again and smalle
 - `story.html` — Our Story / about page
 - `menu.html` — food menu (shell only; content comes from `menu-data.js`)
 - `menu-data.js` — **the entire food menu lives here**
+- `form-config.js` — **where the form emails go**; edit this, nothing else
+- `server/` — the mail handler, nginx config, systemd unit, and `DEPLOY.md`
 - `assets/` — logos and favicons; `assets/photos/` and `assets/video/` for your photography
 - `PHOTOS.md` — the list of photos to supply, with filenames and sizes
 - `drinks.html` — drinks list (shell only; content comes from `drinks-data.js`)
+- `accessibility.html` — accessibility statement, linked from every footer
 - `drinks-data.js` — **the entire drinks list lives here**
 
 `menu.html` and `drinks.html` are the same page with a different data file attached, so any
@@ -123,9 +126,14 @@ and confirm before it goes live.** Specific things to check:
 
 1. **Surname spelling.** Sources use both *Corrova* and *Carrova*. The page uses **Corrova**
    (the more common spelling). Confirm which is right.
-2. **Family names and roles.** Dolores, Anthony, Michelle, Marianne and their titles are from
-   2020 reporting and may well be out of date. There's an HTML comment marking this section.
-   Cut it or correct it — don't ship stale roles.
+2. ~~**Family names and roles.**~~ **Corrected by the owner.** Jimmy Corrova passed away in
+   2021 and Anthony in 2022. The restaurant is now run by Jimmy's daughters, Michelle and
+   Marianne, and the family section reflects that. Dolores still appears once, in the 1955
+   timeline entry, as a historical fact about who opened the second location — not as a claim
+   about who works there now. Roles confirmed by the owner: both
+   are owners and operators, Marianne front of house and Michelle back of house. One thing
+   still open — whether the family wants Jimmy and Anthony acknowledged anywhere on the page
+   beyond the passing mention of Jimmy. That's their call, not a design decision.
 3. **The pizza date.** The timeline says "1930s" for the first pizza in Columbus. One source
    says 1934; the restaurant just claims "first." Pin down the year if the family knows it.
 4. **The Poor Boy trademark.** Confirm TAT still holds it, and check the decade.
@@ -304,3 +312,220 @@ behind.
 
 One repository serves one custom domain, so put this in its own repo rather than a subfolder of
 the repo that serves lucidlydigital.com.
+
+
+## Design revision — lighter palette
+
+Owner feedback was that the site read too dark and was hard to use on a phone. Nine sections
+were painted near-black; the page is now light by default and dark is used as an accent.
+
+- Header and the gift-card strip: cream, not near-black, and the header no longer floats
+  transparently over the hero.
+- Catering, Hours & location, the story page's name block, and both menu pages: cream.
+- The marquee is wine red rather than near-black — colour instead of darkness.
+- Still dark on purpose: the hero photo (needs a scrim for the white headline to read) and
+  the footer, which is the single dark anchor at the end of the page.
+- Body text moved from weight 300 to 400. Thin weights look elegant on a desktop monitor and
+  turn to mush on a phone in daylight.
+
+On phones specifically: the hero no longer fills the entire screen before you scroll, the
+gallery is two across rather than one giant tile per screen, buttons are taller, and small
+uppercase labels are floored at a readable size. The map is in full colour now instead of
+greyscale.
+
+Checked at 390, 768 and 1280px on all four pages: no sideways scrolling, no text under 11px,
+no JavaScript errors.
+
+
+## Legibility pass
+
+Feedback was that text was hard to read on the cream background. Measured contrast first: ink
+on cream is 16.9:1 and the soft body colour 13.8:1, both well past AAA. So it was never the
+colours — it was the typeface. Bodoni is a high-contrast didone whose hairline strokes are
+designed for display sizes and visually disappear at body sizes. Darkening the colour would
+not have fixed a stroke one pixel wide.
+
+What changed:
+
+- Small and mid-size Bodoni moved from weight 400 to 500/600 — headings in the timeline, the
+  visit cards, family names, the marquee, pull quotes and captions. The extra font weights are
+  now loaded from Google Fonts.
+- `font-optical-sizing: auto` turned on, so the variable font thickens its strokes at small
+  sizes instead of keeping display hairlines.
+- **Menu item names moved from Bodoni to Jost at weight 500.** A didone at 17px repeated down
+  a 250-item list is the worst case for this problem; the sans is far steadier there.
+- `--muted` darkened from `#6B6058` to `#574E47`, taking small grey labels from 5.5:1 to
+  roughly 7:1.
+- Lead paragraphs now use the full-strength ink rather than the softened one.
+
+White panels were added behind the densest text, as suggested: the menu and drinks item lists,
+the Hours & location cards, the story page's family cards and name plate, and the stats block
+on the homepage. White against cream lifts the reading surface, raises contrast to 15.4:1, and
+gives the long lists an edge to sit inside. There's a `--surface` token in `:root` if you want
+to tint those panels rather than leave them pure white.
+
+
+## Typeface change
+
+The legibility pass above helped but didn't go far enough — the report was still that text
+"gets very thin". At that point weight adjustments had run out of road, because the problem was
+the two typefaces themselves:
+
+- **Bodoni Moda** is a didone. Thick stems, hairline everything else. That is the design, and
+  it is the wrong design for anything below headline size.
+- **Jost** is a Futura revival — geometric, even, and thin by nature. The 1927 Futura tie-in to
+  TAT's 1929 opening was a nice idea that lost to readability.
+
+They've been replaced:
+
+    --f-display   Bodoni Moda  ->  Fraunces
+    --f-body      Jost         ->  Karla
+
+**Fraunces** is a soft serif with low stroke contrast — it keeps the warm, old-signage feel
+without the hairlines. **Karla** is a grotesque with even stroke weight that holds up at body
+size far better than a geometric sans.
+
+Both are Google Fonts, both variable. Display sizes were reduced slightly and line-height
+opened up, because Fraunces carries more weight per character than Bodoni and needs less size
+to read as large. Small uppercase labels, buttons and menu item names moved to weight 600–700.
+
+Both tokens are in `:root` in `styles.css`. Changing typeface again means editing those two
+lines and the Google Fonts `<link>` in the four HTML files.
+
+
+## Owner revisions, second round
+
+Homepage: the marquee line about sauce and pasta became "Your favorites, made from scratch".
+
+Our Story page:
+- Header headline was "Ninety-six years on one family's watch" — now "The same family since 1929".
+- The name section heading was "The restaurant is named after an airline" — now "Where the
+  name comes from". The airline story itself is unchanged; only the headline went.
+- The timeline heading was "Four addresses, one kitchen", which promised addresses and then
+  listed other things. Now "How we got here".
+- Removed the claim that Jimmy taped himself cooking every recipe before heart surgery. It came
+  from published reporting and the owner says it isn't true. Worth noting the same source
+  supplied several other details on this page — see the verification list above.
+- The family section was rewritten. See item 2 in the verification list.
+
+
+## Forms
+
+Two forms, both opening as a dialog rather than a separate page: **Book a party** in the
+parties section, and **Work with us** in the strip along the top of every page. The old
+SpotHopper jobs link is gone from all four pages.
+
+Both are built by `script.js` rather than written into the HTML, so the markup isn't repeated
+four times. Any element with `data-form="party"` or `data-form="job"` opens the matching
+dialog — that's all it takes to add another trigger anywhere.
+
+They validate before sending, trap keyboard focus inside the dialog, close on Escape, and
+work on a phone.
+
+### Where the mail goes
+
+`form-config.js` — recipients and the mail endpoint, in one file:
+
+    to:       tatristorante@aol.com, jkirkbride13@gmail.com
+    endpoint: (empty)
+
+### The bit that needs a decision
+
+**A browser cannot send SMTP.** It has no way to open an SMTP connection, so a form on a
+static site cannot email anyone by itself — something running on a server has to do it.
+**GitHub Pages only serves files; it cannot run code.**
+
+So `endpoint` is empty, and the forms currently **fall back to opening the visitor's own email
+program** with every field filled in and both addresses in the To: line. That works today, on
+GitHub Pages, with no server — but some people abandon at that step, so you'll lose
+submissions.
+
+To have them send silently, `server/send-mail.js` is ready to go. It speaks SMTP directly
+using Node's built-in `tls` module — no npm packages, as asked.
+
+**Deploying to your own server: follow `server/DEPLOY.md`.** It puts the site and the mail
+handler on one box, which is the simpler arrangement — same origin, so no CORS to get wrong,
+one certificate, and the form posts to the relative path `/send`. Supplied alongside it:
+
+- `server/nginx.conf.example` — serves the site, proxies `/send`, caches assets, rate-limits
+  the form to 5 submissions a minute per address, and blocks public access to `server/`
+- `server/tat-mail.service` — systemd unit so the handler restarts on failure and survives a
+  reboot, running as its own unprivileged user with credentials in `/etc/tat-mail.env`
+
+The handler refuses to mail anyone outside a hard-coded allow list, so it can't be turned into
+an open relay by whoever finds the endpoint.
+
+### Two things worth doing before it's live
+
+**Check the email address.** The forms send to `tatristorante@aol.com`, as instructed. The
+contact link on the site says `tatristorante@aol.net`, which is what the old site used. One of
+them is wrong — worth confirming which.
+
+**Add spam protection.** A public form endpoint gets found by bots eventually. A hidden
+honeypot field is about ten lines and catches most of it; `server/README.md` lists the options.
+
+
+## Resume uploads
+
+The job form now takes an optional resume: PDF, Word, txt or rtf, up to 4 MB. The browser reads
+the file, sends it alongside the answers, and the mail handler attaches it to the email as a
+proper MIME attachment.
+
+Three limits have to agree, so if you ever raise one, raise all three:
+
+    script.js                     MAX_FILE            4 MB
+    server/send-mail.js           request cap         6 MB (base64 inflates by a third)
+    server/nginx.conf.example     client_max_body_size 8m
+
+The handler checks the file extension and that the payload really is base64 before it will
+attach anything.
+
+**One thing the fallback can't do.** With `endpoint` empty, the forms hand off to the visitor's
+own email program — and a web page cannot attach a file to that. Someone who picks a resume
+before the mail handler is live gets told so, and is asked to email it separately or call. Once
+you deploy the handler, attachments work properly. It's another reason to get the server up.
+
+## Accessibility statement
+
+`accessibility.html` replaces the footer link that went nowhere. It is written against what the
+site verifiably does, not boilerplate — I audited all five pages first and fixed three real
+problems found in the process.
+
+It runs about 260 words across four sections, which is in the normal range for a restaurant.
+An earlier draft was 646 words; the cut removed a nine-bullet list of technical features
+(nobody reads those, and they date the moment the site changes) and a paragraph of commitment
+boilerplate. What was kept is the part that does work: the phone number, the admission that the
+third-party ordering and booking sites aren't ours, the offer to read the menu aloud, and a
+response-time commitment.
+
+The three problems the audit found:
+
+- The homepage had **four `<h1>` elements** (the four rotating hero headlines). All four sat in
+  the DOM and a screen reader announced every one. Now a single `<h1>` containing spans.
+- Footer headings jumped from `<h2>` to `<h4>`, skipping a level. Now `<h3>`.
+- The logo link took its name from a child element. It now carries its own `aria-label`.
+
+After those fixes: one `<h1>` per page, no skipped heading levels, no unnamed interactive
+elements, no images without alt text, no untitled iframes.
+
+### Read this before publishing it
+
+**I am not a lawyer and this is not legal advice.** Have your attorney read the page before it
+goes live. What I can tell you plainly:
+
+- **A statement on its own protects nobody.** Most ADA website claims against restaurants are
+  settled on what the site actually does. The page helps because it shows intent, gives a
+  contact route, and commits to a response time — but it is evidence of effort, not a shield.
+  The real protection is the site being usable, which is why the audit above mattered more than
+  the wording.
+- **Do not claim more than is true.** The page says we *aim* at WCAG 2.1 AA and lists where we
+  fall short, including that no independent audit has been done. A page claiming full
+  conformance that a plaintiff's expert then disproves is worse than having no page at all.
+- **The "In the restaurant" section has a placeholder** and an HTML comment marking it. It
+  currently says to phone with questions and that service animals are welcome. It does **not**
+  claim anything about ramps, doorways, restrooms or parking, because I have not seen the
+  building. Fill it in from a real walk-through, or leave it as it is. Publishing an unchecked
+  claim about the premises is the thing that causes trouble.
+- **The response commitment is five business days.** That is a promise in writing. Shorten it,
+  lengthen it, or keep it — but it needs to be one the restaurant will actually keep.
+- **Keep the review date current.** It reads 10 September 2026.

@@ -1,0 +1,73 @@
+# =========================================================
+# TAT — nginx site config
+# Serves the static site and hands /send to the mail handler.
+#
+# Install to:  /etc/nginx/sites-available/tat
+# Enable with: ln -s /etc/nginx/sites-available/tat /etc/nginx/sites-enabled/
+# Test with:   nginx -t
+# =========================================================
+
+# Rate limit for the form endpoint. A public form gets found by bots
+# eventually; this caps any single address at 5 submissions a minute.
+limit_req_zone $binary_remote_addr zone=tatform:10m rate=5r/m;
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name tat.lucidlydigital.com;
+
+    # certbot rewrites this block to redirect to https once a cert is issued.
+    root /var/www/tat;
+    index index.html;
+
+    # ---------- the site ----------
+    location / {
+        try_files $uri $uri/ $uri.html =404;
+    }
+
+    # Photos and logos are content-addressed by name and change rarely.
+    location ~* \.(jpg|jpeg|png|ico|woff2|mp4)$ {
+        expires 30d;
+        add_header Cache-Control "public, immutable";
+    }
+
+    # CSS and JS change when the site is edited, so revalidate.
+    location ~* \.(css|js)$ {
+        expires 1h;
+        add_header Cache-Control "public, must-revalidate";
+    }
+
+    # ---------- the mail handler ----------
+    location /send {
+        limit_req zone=tatform burst=3 nodelay;
+        limit_req_status 429;
+
+        proxy_pass http://127.0.0.1:8080;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 30s;
+    }
+
+    # ---------- basics ----------
+    gzip on;
+    gzip_types text/css application/javascript text/html image/svg+xml application/json;
+    gzip_min_length 512;
+
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+    # Don't serve the working files to the public.
+    location ~ ^/(server|README\.md|PHOTOS\.md|\.git) {
+        deny all;
+        return 404;
+    }
+
+    # Big enough for a 4 MB resume once base64 has inflated it.
+    client_max_body_size 8m;
+    access_log /var/log/nginx/tat.access.log;
+    error_log  /var/log/nginx/tat.error.log;
+}

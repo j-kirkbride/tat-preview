@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Menu | TAT Ristorante Di Famiglia, Columbus</title>
-<meta name="description" content="Dinner, lunch, early bird, banquet and group carry out menus for TAT Ristorante Di Famiglia — Columbus' oldest Italian restaurant, serving since 1929.">
+<title>Accessibility | TAT Ristorante Di Famiglia, Columbus</title>
+<meta name="description" content="How TAT Ristorante Di Famiglia works to keep its website and dining room usable by everyone, and how to tell us when something isn't working.">
 <meta name="theme-color" content="#14100E">
 
 <!-- PREVIEW ONLY — keeps this staging copy out of Google so it can't
@@ -14,8 +14,8 @@
 
 <meta property="og:image" content="assets/app-icon.png">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Menu | TAT Ristorante Di Famiglia">
-<meta property="og:description" content="Homemade pasta, the first pizza in Columbus, and the Poor Boy. Since 1929.">
+<meta property="og:title" content="Accessibility | TAT Ristorante Di Famiglia">
+<meta property="og:description" content="Our accessibility commitment, and how to reach us if something on this site gets in your way.">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -60,7 +60,7 @@
         <li><a href="index.html#gallery">Gallery</a></li>
         <li><a href="index.html#parties">Parties</a></li>
         <li><a href="index.html#visit">Visit</a></li>
-        <li><a href="menu.html" aria-current="page">Menu</a></li>
+        <li><a href="menu.html">Menu</a></li>
         <li><a href="drinks.html">Drinks</a></li>
       </ul>
     </nav>
@@ -99,52 +99,50 @@
 
 <main id="main">
 
-<!-- ============ MENU HEAD ============ -->
 <section class="menu-head">
   <div class="wrap">
-    <p class="eyebrow eyebrow-light">Our menu</p>
-    <h1 class="menu-title">Homemade since 1929</h1>
-    <p class="menu-intro">Recipes were never written down here &mdash; the pasta, the sauces and the Italian dressing are still made the way Papa Pete taught the family.</p>
+    <p class="eyebrow eyebrow-light">Accessibility</p>
+    <h1 class="menu-title">Everyone eats here</h1>
+    <p class="menu-intro">We want this website, and our dining room, to work for every guest. If something here gets in your way, tell us and we will fix it.</p>
   </div>
 </section>
 
-<!-- Tabs. Rendered from menu-data.js. -->
-<div class="menu-tabs" id="menuTabs">
-  <div class="wrap menu-tabs-inner">
-    <div class="menu-tablist" id="menuTablist" role="tablist" aria-label="Choose a menu"></div>
-    <div class="menu-search">
-      <label class="sr-only" for="menuFilter">Search the menu</label>
-      <input type="search" id="menuFilter" placeholder="Search dishes…" autocomplete="off">
-      <button class="menu-search-clear" id="menuFilterClear" hidden aria-label="Clear search">&times;</button>
+<div class="wrap prose">
+
+  <h2>What we aim for</h2>
+  <p>We work to the <strong>Web Content Accessibility Guidelines (WCAG) 2.1, Level AA</strong> &mdash; the standard most widely used to judge whether a website is accessible. Every page can be used by keyboard alone, every photograph has a text description, text contrast exceeds the AA requirement throughout, and the site works with a screen reader, with the page zoomed, and on a phone.</p>
+
+  <h2>Where we fall short</h2>
+  <p>Ordering, reservations and gift cards are handled by outside companies on their own websites. We chose them, but we do not control how they are built. <strong>If any of those give you trouble, call us on <a href="tel:+16142361392">(614) 236-1392</a></strong> and we will take your order, booking or gift card over the phone. We will also read you the menu and answer questions about ingredients.</p>
+
+  <h2>In the restaurant</h2>
+  <!-- TODO FOR THE OWNER: replace this with the real details of the building —
+       parking, entrance steps or ramp, doorway widths, restroom access, table
+       heights. Do not publish claims about the premises that have not been
+       checked in person; an unchecked claim causes trouble rather than
+       preventing it. -->
+  <p>If you have questions about parking, the entrance, restrooms or seating, call us before you come and we will tell you honestly what to expect. Service animals are welcome.</p>
+
+  <h2>Tell us when something is wrong</h2>
+  <p>Let us know what you were trying to do, and what device or software you were using if you can.</p>
+  <ul class="contact-list">
+    <li><strong>Phone:</strong> <a href="tel:+16142361392">(614) 236-1392</a></li>
+    <li><strong>Email:</strong> <a href="mailto:tatristorante@aol.com">tatristorante@aol.com</a></li>
+    <li><strong>Post:</strong> 1210 South James Road, Columbus, OH 43227</li>
+  </ul>
+
+  <p class="prose-meta">Reviewed <time datetime="2026-09-10">10 September 2026</time>. We review this page whenever the site changes substantially, and at least once a year.</p>
+
+</div>
+
+<section class="story-close">
+  <div class="wrap story-close-inner">
+    <div class="story-close-cta">
+      <a class="btn btn-solid btn-lg" href="tel:+16142361392">Call (614) 236-1392</a>
+      <a class="btn btn-ghost btn-lg" href="index.html">Back to the homepage</a>
     </div>
   </div>
-</div>
-
-<div class="wrap menu-body">
-  <p class="menu-note" id="menuBlurb"></p>
-  <p class="menu-filter-status" id="menuFilterStatus" role="status"></p>
-
-  <div class="menu-layout">
-    <!-- Jump links, desktop only -->
-    <nav class="menu-jump" id="menuJump" aria-label="Menu sections"></nav>
-    <div class="menu-sections" id="menuSections"></div>
-  </div>
-
-  <p class="menu-legal" id="menuLegal"></p>
-
-  <div class="menu-cta">
-    <a class="btn btn-solid btn-lg" href="https://order.online/business/tat-ristorante-di-famiglia-47376">Order online</a>
-    <a class="btn btn-ghost btn-lg" href="https://tmt.spotapps.co/reservations?spot_id=79712">Book a table</a>
-    <a class="btn btn-ghost btn-lg" href="tel:+16142361392">Call (614) 236-1392</a>
-  </div>
-</div>
-
-<noscript>
-  <div class="wrap">
-    <p class="menu-note">Our full menu needs JavaScript to display. Please call
-      <a href="tel:+16142361392">(614) 236-1392</a> and we'll happily read it to you.</p>
-  </div>
-</noscript>
+</section>
 
 </main>
 
@@ -192,7 +190,6 @@
   <a class="primary" href="https://order.online/business/tat-ristorante-di-famiglia-47376">Order</a>
 </div>
 
-<script src="menu-data.js"></script>
 <script src="form-config.js"></script>
 <script src="script.js"></script>
 </body>

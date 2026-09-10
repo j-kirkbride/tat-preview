@@ -12,7 +12,6 @@ where the marble reads as one continuous surface running behind the tiles.
 | Hero slide 2 | Parmigiana platter |
 | Hero slide 3 | Seafood fettuccine alfredo |
 | Hero slide 4 | Spaghetti with meatball |
-| Catering | Zita alla Sicilian |
 | Private parties | Dessert spread · Italian sausage dinner |
 | Gallery (15 tiles) | Spaghetti, angel hair, baked rigatoni, zita, chicken marsala, chicken piccata, antipasto salad, chef salad, cannoli, tiramisu, cheesecake, chocolate cake, caramel pecan cheesecake, stuffed shells, strawberry cheesecake |
 | Our Story header | The wall sconce beside the framed TAT history |
@@ -91,3 +90,16 @@ stills. Leave it out and the stills run as a slideshow. Keep it short, silent, u
 No photos or video. What remains is the **reservations widget** and the **jobs link** — real
 booking tools, not images. If TAT moves off SpotHopper, search the four HTML files for
 `tmt.spotapps.co`; there are 29.
+
+
+## Catering section removed
+
+The homepage catering section was cut at the owner's request — TAT no longer caters offsite.
+`catering-table.jpg` was deleted with it; the same dish (zita alla Sicilian) is still in the
+gallery, so no photograph was lost.
+
+Worth considering: they do still do **large group meals and carry-out**, and there's a whole
+Group carry out menu on the menu page that the homepage no longer points at anywhere. That's a
+real revenue line with no route to it from the front page. A short section in the same slot —
+"Feeding a crowd" or similar, linking to `menu.html#carry-out` — would fill the gap without
+saying the word catering. Not built, since it wasn't asked for.

@@ -487,6 +487,283 @@
     });
   })();
 
+
+  /* ------------------------------------------------------
+     Enquiry forms (party bookings, job applications)
+     Built in JS so the markup isn't repeated on four pages.
+     Any element with data-form="party" or data-form="job"
+     opens the matching dialog.
+     ------------------------------------------------------ */
+  (function () {
+    var triggers = $$('[data-form]');
+    if (!triggers.length) return;
+
+    var CFG = window.TAT_FORMS || {};
+    var TO = CFG.to || [];
+    var ENDPOINT = CFG.endpoint || '';
+
+    var FORMS = {
+      party: {
+        title: 'Book a party',
+        intro: 'Tell us roughly what you have in mind and we\u2019ll call you back. For anything urgent, ring us on ' + (CFG.phone || '(614) 236-1392') + '.',
+        subject: 'Party enquiry from the website',
+        fields: [
+          { name: 'name',    label: 'Your name',        type: 'text',     required: true,  autocomplete: 'name' },
+          { name: 'phone',   label: 'Phone',            type: 'tel',      required: true,  autocomplete: 'tel' },
+          { name: 'email',   label: 'Email',            type: 'email',    required: true,  autocomplete: 'email' },
+          { name: 'date',    label: 'Date you have in mind', type: 'date', required: false },
+          { name: 'guests',  label: 'Roughly how many guests', type: 'number', required: false, min: '1', max: '200' },
+          { name: 'message', label: 'Anything else we should know', type: 'textarea', required: false }
+        ]
+      },
+      job: {
+        title: 'Work at TAT',
+        intro: 'We\u2019re a family restaurant and a lot of our people have been here for years. Tell us a little about yourself.',
+        subject: 'Job application from the website',
+        fields: [
+          { name: 'name',         label: 'Your name',   type: 'text',  required: true, autocomplete: 'name' },
+          { name: 'phone',        label: 'Phone',       type: 'tel',   required: true, autocomplete: 'tel' },
+          { name: 'email',        label: 'Email',       type: 'email', required: true, autocomplete: 'email' },
+          { name: 'position',     label: 'What kind of work are you after', type: 'select', required: true,
+            options: ['Server', 'Kitchen', 'Dishwasher', 'Carry out / delivery', 'Anything going'] },
+          { name: 'availability', label: 'When can you work', type: 'text', required: false,
+            placeholder: 'Evenings, weekends, etc.' },
+          { name: 'experience',   label: 'Where you\u2019ve worked before', type: 'textarea', required: false },
+          { name: 'resume',       label: 'Resume', type: 'file', required: false,
+            accept: '.pdf,.doc,.docx,.txt,.rtf',
+            hint: 'Optional. PDF or Word, up to 4 MB.' }
+        ]
+      }
+    };
+
+    var overlay = null, lastFocus = null, activeKey = null;
+
+    function esc(v) {
+      return String(v).replace(/[&<>"]/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+      });
+    }
+
+    function fieldHTML(f) {
+      var id = 'f_' + f.name;
+      var req = f.required ? ' required' : '';
+      var mark = f.required ? ' <span aria-hidden="true">*</span>' : '';
+      var input;
+      if (f.type === 'textarea') {
+        input = '<textarea id="' + id + '" name="' + f.name + '" rows="4"' + req + '></textarea>';
+      } else if (f.type === 'select') {
+        input = '<select id="' + id + '" name="' + f.name + '"' + req + '><option value="">Please choose\u2026</option>' +
+          f.options.map(function (o) { return '<option>' + esc(o) + '</option>'; }).join('') + '</select>';
+      } else if (f.type === 'file') {
+        input = '<input id="' + id + '" name="' + f.name + '" type="file" class="field-file"' +
+          (f.accept ? ' accept="' + f.accept + '"' : '') + '>';
+      } else {
+        input = '<input id="' + id + '" name="' + f.name + '" type="' + f.type + '"' + req +
+          (f.autocomplete ? ' autocomplete="' + f.autocomplete + '"' : '') +
+          (f.placeholder ? ' placeholder="' + esc(f.placeholder) + '"' : '') +
+          (f.min ? ' min="' + f.min + '"' : '') + (f.max ? ' max="' + f.max + '"' : '') + '>';
+      }
+      return '<div class="field"><label for="' + id + '">' + esc(f.label) + mark + '</label>' + input +
+             (f.hint ? '<p class="field-hint">' + esc(f.hint) + '</p>' : '') +
+             '<p class="field-error" id="' + id + '_err" role="alert"></p></div>';
+    }
+
+    function open(key) {
+      var cfg = FORMS[key];
+      if (!cfg) return;
+      activeKey = key;
+      lastFocus = document.activeElement;
+
+      overlay = document.createElement('div');
+      overlay.className = 'modal';
+      overlay.innerHTML =
+        '<div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="modalTitle">' +
+          '<button class="modal-close" type="button" aria-label="Close">&times;</button>' +
+          '<h2 class="modal-title" id="modalTitle">' + esc(cfg.title) + '</h2>' +
+          '<p class="modal-intro">' + cfg.intro + '</p>' +
+          '<form class="modal-form" novalidate>' +
+            cfg.fields.map(fieldHTML).join('') +
+            '<p class="form-status" role="status"></p>' +
+            '<div class="modal-actions">' +
+              '<button class="btn btn-solid btn-lg" type="submit">Send</button>' +
+              '<button class="btn btn-ghost btn-lg modal-cancel" type="button">Cancel</button>' +
+            '</div>' +
+          '</form>' +
+        '</div>';
+
+      document.body.appendChild(overlay);
+      document.body.classList.add('nav-open');
+      requestAnimationFrame(function () { overlay.classList.add('is-open'); });
+
+      $('.modal-close', overlay).addEventListener('click', close);
+      $('.modal-cancel', overlay).addEventListener('click', close);
+      overlay.addEventListener('click', function (e) { if (e.target === overlay) close(); });
+      $('.modal-form', overlay).addEventListener('submit', submit);
+      overlay.addEventListener('keydown', trap);
+
+      var first = $('input, select, textarea', overlay);
+      if (first) first.focus();
+    }
+
+    function close() {
+      if (!overlay) return;
+      var o = overlay;
+      overlay = null;
+      o.classList.remove('is-open');
+      document.body.classList.remove('nav-open');
+      setTimeout(function () { if (o.parentNode) o.parentNode.removeChild(o); }, 250);
+      if (lastFocus) lastFocus.focus();
+    }
+
+    /* Keep keyboard focus inside the dialog while it's open. */
+    function trap(e) {
+      if (e.key === 'Escape') { close(); return; }
+      if (e.key !== 'Tab') return;
+      var f = $$('button, input, select, textarea, a[href]', overlay)
+        .filter(function (el) { return !el.disabled && el.offsetParent !== null; });
+      if (!f.length) return;
+      var first = f[0], last = f[f.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+
+    function validate(form, cfg) {
+      var ok = true, firstBad = null;
+      cfg.fields.forEach(function (f) {
+        var el = form.elements[f.name];
+        var err = $('#f_' + f.name + '_err', overlay);
+        if (f.type === 'file') return;          // checked when the file is read
+        var v = (el.value || '').trim();
+        var msg = '';
+        if (f.required && !v) msg = 'Please fill this in.';
+        else if (f.type === 'email' && v && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)) msg = 'That doesn\u2019t look like an email address.';
+        else if (f.type === 'tel' && v && v.replace(/\D/g, '').length < 10) msg = 'Please include the area code.';
+        err.textContent = msg;
+        el.classList.toggle('is-invalid', !!msg);
+        el.setAttribute('aria-invalid', msg ? 'true' : 'false');
+        if (msg) { ok = false; if (!firstBad) firstBad = el; }
+      });
+      if (firstBad) firstBad.focus();
+      return ok;
+    }
+
+    function asText(cfg, data) {
+      return cfg.fields.filter(function (f) { return f.type !== 'file'; }).map(function (f) {
+        return f.label + ': ' + (data[f.name] || '\u2014');
+      }).join('\n');
+    }
+
+    /* No mail script configured, or it failed: hand off to the visitor's
+       own email program with everything already written out. */
+    function mailtoFallback(cfg, data) {
+      var body = asText(cfg, data) + '\n\n\u2014 sent from tatitalian.net';
+      window.location.href = 'mailto:' + TO.join(',') +
+        '?subject=' + encodeURIComponent(cfg.subject) +
+        '&body=' + encodeURIComponent(body);
+    }
+
+    var MAX_FILE = 4 * 1024 * 1024;   // 4 MB
+
+    function readFile(input) {
+      return new Promise(function (resolve, reject) {
+        var file = input && input.files && input.files[0];
+        if (!file) return resolve(null);
+        if (file.size > MAX_FILE) {
+          return reject(new Error('That file is ' + Math.round(file.size / 1048576 * 10) / 10 +
+            ' MB. Please keep it under 4 MB.'));
+        }
+        var r = new FileReader();
+        r.onload = function () {
+          resolve({
+            name: file.name,
+            type: file.type || 'application/octet-stream',
+            data: String(r.result).split(',')[1]      // strip the data: prefix
+          });
+        };
+        r.onerror = function () { reject(new Error('That file couldn\u2019t be read.')); };
+        r.readAsDataURL(file);
+      });
+    }
+
+    function submit(e) {
+      e.preventDefault();
+      var form = e.target;
+      var cfg = FORMS[activeKey];
+      if (!validate(form, cfg)) return;
+
+      var data = {};
+      cfg.fields.forEach(function (f) {
+        if (f.type === 'file') return;
+        data[f.name] = (form.elements[f.name].value || '').trim();
+      });
+
+      var status = $('.form-status', overlay);
+      var send = $('button[type=submit]', overlay);
+      var fileField = cfg.fields.filter(function (f) { return f.type === 'file'; })[0];
+      var fileInput = fileField ? form.elements[fileField.name] : null;
+      var hasFile = !!(fileInput && fileInput.files && fileInput.files.length);
+
+      if (!ENDPOINT) {
+        if (hasFile) {
+          // An email program can't be handed an attachment from a web page.
+          var err = $('#f_' + fileField.name + '_err', overlay);
+          err.textContent = 'We can\u2019t attach a file until the site\u2019s mail is switched on. ' +
+            'Send the rest now and email your resume separately, or call us.';
+        }
+        mailtoFallback(cfg, data);
+        return;
+      }
+
+      send.disabled = true;
+      status.className = 'form-status';
+      status.textContent = hasFile ? 'Uploading\u2026' : 'Sending\u2026';
+
+      readFile(fileInput).catch(function (err) {
+        send.disabled = false;
+        status.className = 'form-status is-error';
+        status.textContent = '';
+        $('#f_' + fileField.name + '_err', overlay).textContent = err.message;
+        fileInput.focus();
+        throw err;
+      }).then(function (attachment) {
+        status.textContent = 'Sending\u2026';
+        return fetch(ENDPOINT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            form: activeKey, subject: cfg.subject, to: TO,
+            fields: data, text: asText(cfg, data),
+            attachment: attachment
+          })
+        });
+      }).then(function (r) {
+        if (!r.ok) throw new Error('bad status ' + r.status);
+        $('.modal-panel', overlay).innerHTML =
+          '<button class="modal-close" type="button" aria-label="Close">&times;</button>' +
+          '<h2 class="modal-title">Thank you</h2>' +
+          '<p class="modal-intro">We\u2019ve got it and we\u2019ll be in touch. If it\u2019s urgent, call us on ' +
+          esc(CFG.phone || '(614) 236-1392') + '.</p>' +
+          '<div class="modal-actions"><button class="btn btn-solid btn-lg modal-cancel" type="button">Close</button></div>';
+        $('.modal-close', overlay).addEventListener('click', close);
+        $('.modal-cancel', overlay).addEventListener('click', close);
+        $('.modal-cancel', overlay).focus();
+      }).catch(function (err) {
+        if (err && err.message && /MB|couldn/.test(err.message)) return;  // already reported on the field
+        send.disabled = false;
+        status.className = 'form-status is-error';
+        status.textContent = 'That didn\u2019t send. Opening your email instead\u2026';
+        setTimeout(function () { mailtoFallback(cfg, data); }, 900);
+      });
+    }
+
+    triggers.forEach(function (t) {
+      t.addEventListener('click', function (e) {
+        e.preventDefault();
+        open(t.getAttribute('data-form'));
+      });
+    });
+  })();
+
   /* ------------------------------------------------------
      Footer year
      ------------------------------------------------------ */

@@ -1,0 +1,45 @@
+# =========================================================
+# TAT — mail handler service
+#
+# Install to: /etc/systemd/system/tat-mail.service
+# Then:       systemctl daemon-reload
+#             systemctl enable --now tat-mail
+# Check with: systemctl status tat-mail
+# Logs:       journalctl -u tat-mail -f
+# =========================================================
+
+[Unit]
+Description=TAT website form mail handler
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=tatmail
+Group=tatmail
+WorkingDirectory=/var/www/tat
+
+# SMTP credentials live here, NOT in the repository.
+# Create it with: install -m 600 -o tatmail -g tatmail /dev/null /etc/tat-mail.env
+EnvironmentFile=/etc/tat-mail.env
+
+ExecStart=/usr/bin/node /var/www/tat/server/send-mail.js
+
+Restart=always
+RestartSec=5
+
+# The handler reads one file and opens one outbound connection. Nothing else.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_INET AF_INET6
+MemoryMax=128M
+
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
