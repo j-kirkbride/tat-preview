@@ -11,6 +11,33 @@
   var $  = function (s, c) { return (c || document).querySelector(s); };
   var $$ = function (s, c) { return Array.prototype.slice.call((c || document).querySelectorAll(s)); };
 
+
+  /* ------------------------------------------------------
+     Scroll lock for overlays
+     iOS Safari won't honour overflow:hidden on body, so the
+     page scrolls behind the menu, the lightbox and the forms,
+     and snaps to the top when they close. Pin the body at the
+     current offset instead, then put it back.
+     ------------------------------------------------------ */
+  var scrollLock = (function () {
+    var y = 0, depth = 0;
+    return {
+      on: function () {
+        if (depth++ > 0) return;
+        y = window.pageYOffset || document.documentElement.scrollTop || 0;
+        document.body.style.top = (-y) + 'px';
+        document.body.classList.add('nav-open');
+      },
+      off: function () {
+        if (--depth > 0) return;
+        if (depth < 0) depth = 0;
+        document.body.classList.remove('nav-open');
+        document.body.style.top = '';
+        window.scrollTo(0, y);
+      }
+    };
+  })();
+
   /* ------------------------------------------------------
      Header: solid background once you scroll past the fold
      ------------------------------------------------------ */
@@ -34,7 +61,7 @@
     setNav = function (open) {
       navToggle.setAttribute('aria-expanded', String(open));
       navToggle.querySelector('.sr-only').textContent = open ? 'Close menu' : 'Open menu';
-      document.body.classList.toggle('nav-open', open);
+      open ? scrollLock.on() : scrollLock.off();
       if (open) {
         navMobile.hidden = false;
         requestAnimationFrame(function () { navMobile.classList.add('is-open'); });
@@ -190,12 +217,12 @@
       lastFocus = document.activeElement;
       lb.hidden = false;
       requestAnimationFrame(function () { lb.classList.add('is-open'); });
-      document.body.classList.add('nav-open');
+      scrollLock.on();
       $('#lbClose').focus();
     }
     function close() {
       lb.classList.remove('is-open');
-      document.body.classList.remove('nav-open');
+      scrollLock.off();
       setTimeout(function () { lb.hidden = true; }, 300);
       if (lastFocus) lastFocus.focus();
     }
@@ -592,7 +619,7 @@
         '</div>';
 
       document.body.appendChild(overlay);
-      document.body.classList.add('nav-open');
+      scrollLock.on();
       requestAnimationFrame(function () { overlay.classList.add('is-open'); });
 
       $('.modal-close', overlay).addEventListener('click', close);
@@ -610,7 +637,7 @@
       var o = overlay;
       overlay = null;
       o.classList.remove('is-open');
-      document.body.classList.remove('nav-open');
+      scrollLock.off();
       setTimeout(function () { if (o.parentNode) o.parentNode.removeChild(o); }, 250);
       if (lastFocus) lastFocus.focus();
     }

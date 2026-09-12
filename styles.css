@@ -40,7 +40,16 @@
    overlay in the layout and it eats every click on the page. */
 [hidden]{ display:none !important; }
 
-html{ scroll-behavior:smooth; }
+html{
+  scroll-behavior:smooth;
+  -webkit-text-size-adjust:100%;   /* stop iOS inflating text in landscape */
+}
+
+/* The default tap flash is a grey rectangle that ignores border radius.
+   A faint brand tint reads as intentional. */
+a, button, .tile, [data-form]{
+  -webkit-tap-highlight-color:rgba(237,8,39,.15);
+}
 
 body{
   margin:0;
@@ -134,6 +143,8 @@ a{ color:inherit; }
 
 .link-arrow{
   display:inline-flex; align-items:center; gap:.5rem;
+  padding:.7rem 0;
+  min-height:44px;
   font-size:.8rem; font-weight:600;
   letter-spacing:.16em; text-transform:uppercase;
   text-decoration:none;
@@ -170,6 +181,8 @@ a{ color:inherit; }
 .site-header{
   position:fixed; inset:0 0 auto 0; z-index:90;
   background:var(--ivory);
+  padding-left:env(safe-area-inset-left, 0px);
+  padding-right:env(safe-area-inset-right, 0px);
   border-bottom:1px solid rgba(20,16,14,.12);
   transition:box-shadow .35s var(--ease);
 }
@@ -205,6 +218,7 @@ a{ color:inherit; }
 .topbar-links{ display:flex; align-items:center; gap:.7rem; }
 .topbar-links a{
   display:inline-flex; align-items:center; gap:.45rem;
+  min-height:44px;
   font-size:.68rem; font-weight:500;
   letter-spacing:.2em; text-transform:uppercase;
   color:var(--wine); text-decoration:none;
@@ -275,7 +289,8 @@ a{ color:inherit; }
   position:fixed; inset:0; z-index:85;
   pointer-events:none;
   background:var(--ink);
-  padding:calc(var(--header-h) + 2rem) 1.5rem 2.5rem;
+  padding:calc(var(--header-h) + 2rem) 1.5rem calc(2.5rem + env(safe-area-inset-bottom, 0px));
+  overscroll-behavior:contain;
   overflow-y:auto;
   opacity:0;
   transition:opacity .3s var(--ease);
@@ -296,7 +311,16 @@ a{ color:inherit; }
 }
 .nav-mobile-phone a{ color:var(--brass); text-decoration:none; }
 
-body.nav-open{ overflow:hidden; }
+/* iOS Safari ignores overflow:hidden on body — the page keeps scrolling
+   behind the overlay and jumps to the top when it closes. Pinning the body
+   and restoring the scroll position in JS is the only reliable way. */
+body.nav-open{
+  position:fixed;
+  left:0; right:0;
+  width:100%;
+  overflow:hidden;
+  overscroll-behavior:none;
+}
 
 
 /* ---------- Photo slots ----------
@@ -316,7 +340,8 @@ body.nav-open{ overflow:hidden; }
    ========================================================= */
 .hero{
   position:relative;
-  min-height:min(84svh, 760px);
+  min-height:min(84vh, 760px);
+  min-height:min(84svh, 760px);   /* svh where supported; vh above as fallback */
   display:flex; flex-direction:column; justify-content:flex-end;
   padding:calc(var(--header-h) + 3rem) 0 0;
   color:#fff;
@@ -572,12 +597,13 @@ body.nav-open{ overflow:hidden; }
 }
 .hours-note.is-open{ color:#2E7D42; }
 
-.contact-line{ margin:0 0 .5rem; font-size:1.15rem; }
-.contact-line a{ text-decoration:none; border-bottom:1px solid rgba(110,18,22,.4); }
+.contact-line{ margin:0 0 .25rem; font-size:1.15rem; }
+.contact-line a{
+  display:inline-block; padding:.45rem 0; text-decoration:none; border-bottom:1px solid rgba(110,18,22,.4); }
 .contact-line a:hover{ color:var(--wine); }
 .socials{ display:flex; gap:.6rem; margin-top:1.5rem; }
 .socials a{
-  width:42px; height:42px; display:grid; place-items:center;
+  width:44px; height:44px; display:grid; place-items:center;
   border:1px solid rgba(20,16,14,.25); border-radius:50%;
   transition:background .25s var(--ease), border-color .25s var(--ease);
 }
@@ -592,7 +618,14 @@ body.nav-open{ overflow:hidden; }
 /* =========================================================
    FOOTER
    ========================================================= */
-.site-footer{ background:var(--ink); color:rgba(247,242,231,.72); padding:clamp(3rem, 7vw, 5rem) 0 7rem; }
+.site-footer{
+  background:var(--ink); color:rgba(247,242,231,.72);
+  padding:clamp(3rem, 7vw, 5rem) 0 clamp(3rem, 7vw, 5rem);
+}
+/* Only phones show the fixed bottom bar, so only phones need the clearance. */
+@media (max-width: 860px){
+  .site-footer{ padding-bottom:calc(6rem + env(safe-area-inset-bottom, 0px)); }
+}
 .footer-grid{
   display:grid; grid-template-columns:1.4fr repeat(3, 1fr);
   gap:2.5rem;
@@ -612,7 +645,10 @@ body.nav-open{ overflow:hidden; }
   color:var(--brass);
 }
 .footer-col ul{ list-style:none; margin:0; padding:0; display:grid; gap:.6rem; }
-.footer-col a{ text-decoration:none; font-size:.95rem; }
+.footer-col a{
+  text-decoration:none; font-size:.95rem;
+  display:inline-block; padding:.6rem 0;   /* ~44px tall, thumb-sized */
+}
 .footer-col a:hover{ color:var(--ivory); }
 .footer-base{
   display:flex; flex-wrap:wrap; justify-content:space-between; gap:.5rem;
@@ -628,11 +664,16 @@ body.nav-open{ overflow:hidden; }
   display:none; grid-template-columns:repeat(3, 1fr);
   background:var(--ink);
   border-top:1px solid rgba(200,162,74,.3);
+  /* Clears the iPhone home indicator. Without this the buttons sit
+     underneath it and the bottom of each one can't be tapped. */
+  padding-bottom:env(safe-area-inset-bottom, 0px);
 }
 .action-bar a{
-  padding:1rem .5rem; text-align:center; text-decoration:none;
+  min-height:52px;
+  display:flex; align-items:center; justify-content:center;
+  padding:.9rem .5rem; text-align:center; text-decoration:none;
   color:var(--ivory);
-  font-size:.72rem; letter-spacing:.2em; text-transform:uppercase;
+  font-size:.74rem; letter-spacing:.18em; text-transform:uppercase;
 }
 .action-bar a.primary{ background:var(--red); color:#fff; }
 
@@ -642,6 +683,7 @@ body.nav-open{ overflow:hidden; }
 .lightbox{
   position:fixed; inset:0; z-index:120;
   pointer-events:none;
+  overscroll-behavior:contain;
   background:rgba(12,9,8,.96);
   display:grid; grid-template-columns:auto 1fr auto; align-items:center;
   gap:1rem; padding:clamp(1rem, 4vw, 3rem);
@@ -690,7 +732,7 @@ body.nav-open{ overflow:hidden; }
 }
 
 @media (max-width: 860px){
-  .hero{ min-height:min(72svh, 620px); }
+  .hero{ min-height:min(72vh, 620px); min-height:min(72svh, 620px); }
   .about-grid{ grid-template-columns:1fr; }
   .about-figures{
     border-left:0; padding-left:0;
@@ -707,7 +749,7 @@ body.nav-open{ overflow:hidden; }
 }
 
 @media (max-width: 620px){
-  :root{ --topbar-h:34px; --nav-h:62px; --header-h-stuck:60px; }
+  :root{ --topbar-h:44px; --nav-h:62px; --header-h-stuck:60px; }
   .topbar-inner{ justify-content:center; }
   .topbar-tag{ display:none; }
   .topbar-links a{ font-size:.62rem; letter-spacing:.12em; }
@@ -739,7 +781,7 @@ body.nav-open{ overflow:hidden; }
   .btn{ padding:.95rem 1.4rem; }
   .btn-lg{ padding:1.05rem 1.6rem; font-size:.78rem; }
   .menu-item{ padding:1.05rem 0; }
-  .menu-tab{ padding:.85rem .8rem .7rem; font-size:.74rem; }
+  .menu-tab{ min-height:46px; padding:.9rem .8rem .75rem; font-size:.76rem; }
   .nav-mobile a{ padding:1.05rem 0; }
   .parties-imgs{ grid-template-columns:1fr; }
   .about-figures{ grid-template-columns:1fr; gap:1.25rem; }
@@ -774,6 +816,7 @@ body.nav-open{ overflow:hidden; }
 /* ---------- Page hero ---------- */
 .page-hero{
   position:relative;
+  min-height:min(72vh, 620px);
   min-height:min(72svh, 620px);
   display:flex; align-items:flex-end;
   padding:calc(var(--header-h) + 5rem) 0 clamp(3rem, 7vw, 5.5rem);
@@ -1019,7 +1062,13 @@ body.nav-open{ overflow:hidden; }
   display:flex; gap:.4rem; flex:1 1 auto;
   overflow-x:auto; scrollbar-width:none;
   -webkit-overflow-scrolling:touch;
+  scroll-snap-type:x proximity;
+  /* The list runs off the edge on a phone. This fades the right-hand end so
+     it reads as "there's more", instead of looking like a cut-off tab. */
+  -webkit-mask-image:linear-gradient(to right, #000 calc(100% - 28px), transparent 100%);
+  mask-image:linear-gradient(to right, #000 calc(100% - 28px), transparent 100%);
 }
+.menu-tab{ scroll-snap-align:start; }
 .menu-tablist::-webkit-scrollbar{ display:none; }
 .menu-tab{
   flex:none;
@@ -1039,7 +1088,10 @@ body.nav-open{ overflow:hidden; }
 .menu-search{ position:relative; flex:0 0 220px; }
 .menu-search input{
   width:100%;
-  font-family:var(--f-body); font-size:.9rem;
+  font-family:var(--f-body);
+  /* Must stay at 16px or larger: iOS zooms the page when a smaller
+     input receives focus, and never zooms back out. */
+  font-size:16px;
   padding:.6rem 2rem .6rem .85rem;
   color:var(--ink);
   background:#fff;
@@ -1197,12 +1249,29 @@ body.nav-open{ overflow:hidden; }
   .menu-tag{ margin-top:.15rem; }
 }
 
+/* The narrowest phones still in use (iPhone SE, 320px) can't fit three
+   tracked-out links plus an icon. Drop the icon and the tracking there. */
+@media (max-width: 360px){
+  .topbar-icon{ display:none; }
+  .topbar-links{ gap:.35rem; }
+  .topbar-links a{ font-size:.6rem; letter-spacing:.02em; }
+  .topbar-sep{ font-size:.58rem; }
+}
+
 /* ---------- Minimum legible text on handheld screens ----------
    A handful of small uppercase labels were dipping under 11px, which is
    uncomfortable on anything held at arm's length. Floor them for phones and
    tablets both; at desk viewing distance the smaller sizes are fine. */
 @media (max-width: 900px){
-  .topbar-links a{ font-size:.7rem; }
+  /* Three links plus separators in 390px: they have to stay on one line,
+     so tighten the tracking rather than let them wrap to two rows. */
+  .topbar-links{ gap:.45rem; }
+  .topbar-links a{
+    font-size:.63rem; letter-spacing:.06em;
+    min-height:44px; white-space:nowrap;
+  }
+  .topbar-icon{ width:13px; height:13px; }
+  .topbar-sep{ font-size:.62rem; }
   .menu-tag{ font-size:.72rem; padding:.22rem .5rem; }
   .menu-item-price .price-label,
   .menu-item-suffix{ font-size:.72rem; }
@@ -1225,6 +1294,8 @@ body.nav-open{ overflow:hidden; }
   position:fixed; inset:0; z-index:130;
   display:grid; place-items:center;
   padding:clamp(1rem, 4vw, 2.5rem);
+  padding-bottom:calc(clamp(1rem, 4vw, 2.5rem) + env(safe-area-inset-bottom, 0px));
+  overscroll-behavior:contain;
   background:rgba(20,16,14,.72);
   opacity:0; pointer-events:none;
   transition:opacity .25s var(--ease);
@@ -1235,6 +1306,7 @@ body.nav-open{ overflow:hidden; }
 .modal-panel{
   position:relative;
   width:min(560px, 100%);
+  max-height:calc(100vh - 3rem);
   max-height:calc(100svh - 3rem);
   overflow-y:auto;
   background:var(--surface);

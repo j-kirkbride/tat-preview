@@ -529,3 +529,51 @@ goes live. What I can tell you plainly:
 - **The response commitment is five business days.** That is a promise in writing. Shorten it,
   lengthen it, or keep it — but it needs to be one the restaurant will actually keep.
 - **Keep the review date current.** It reads 10 September 2026.
+
+
+## Mobile audit
+
+Prompted by a report of buggy behaviour on iPhone. Audited with real device profiles
+(iPhone SE, 13, 13 Pro Max, Pixel 5, iPad) in portrait and landscape, across all five pages.
+Nine genuine faults found and fixed:
+
+1. **Body scroll lock didn't work on iOS.** Overlays used `overflow: hidden` on `body`, which
+   iOS Safari ignores — the page kept scrolling behind the menu, the lightbox and the forms,
+   then jumped to the top when they closed. This was almost certainly the "buggy UI". Replaced
+   with a pin-and-restore lock in JS that records the scroll offset, fixes the body, and puts
+   it back on close. Verified: opening at 1200px, scrolling behind, closing, returns to 1200px.
+2. **No safe-area insets anywhere.** The sticky Call/Reserve/Order bar sat underneath the
+   iPhone home indicator, so the bottom of each button couldn't be tapped. Added
+   `env(safe-area-inset-*)` to the bottom bar, the header, the mobile menu, the modals and the
+   footer clearance.
+3. **The menu search box was 14.4px.** iOS zooms the whole page when an input under 16px takes
+   focus, and doesn't zoom back out. Now 16px.
+4. **Tap targets under Apple's 44pt guidance** — menu tabs at 38px, footer links at 17px,
+   arrow links at 27px, social buttons at 42px, gift-card links at 22px. All now at least 44px.
+   Inline phone and email links inside sentences are left alone; WCAG exempts those and padding
+   them would break the line.
+5. **The menu tab strip ran off-screen with no sign it scrolled.** Added a fade at the right
+   edge and scroll-snap.
+6. **`svh` units with no fallback.** Fine on iOS 15.4+, broken below. Each now has a plain `vh`
+   line above it.
+7. **Default grey tap flash** replaced with a faint brand tint.
+8. **`-webkit-text-size-adjust: 100%`** added — iOS otherwise inflates text in landscape.
+9. **`overscroll-behavior: contain`** on overlays, so scrolling to the end of a modal doesn't
+   start dragging the page behind it.
+
+One self-inflicted bug found during the work: a blanket find-and-replace rewrote two lines
+*inside* the new scroll-lock helper, making it call itself instead of toggling the class. Caught
+by testing rather than by reading, which is the argument for testing.
+
+Two regressions caught the same way: raising the gift-card links to 44px made the top strip wrap
+to two lines on a 390px screen, and tightening it for that still overflowed at 320px. Both fixed
+with tracking adjustments and by dropping the gift icon below 360px.
+
+Final state: no horizontal overflow, no tap target under 44px outside inline text, no JS errors,
+on all five pages across five device profiles in both orientations.
+
+**What this testing can't cover.** The audit ran in Chromium with iPhone device emulation, not
+in Safari on a real handset. Emulation gets viewport, touch and pixel density right; it does not
+reproduce WebKit's own rendering quirks, and `env(safe-area-inset-*)` reports 0 in the sandbox
+because there's no notch to measure. The safe-area fixes are correct by construction but have
+not been seen on real glass. Worth a look on the actual phone.
