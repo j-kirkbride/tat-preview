@@ -577,3 +577,23 @@ in Safari on a real handset. Emulation gets viewport, touch and pixel density ri
 reproduce WebKit's own rendering quirks, and `env(safe-area-inset-*)` reports 0 in the sandbox
 because there's no notch to measure. The safe-area fixes are correct by construction but have
 not been seen on real glass. Worth a look on the actual phone.
+
+
+## Reservations moved off SpotHopper
+
+All 25 reservation links now point at:
+
+    https://reservations-lyart.vercel.app/
+
+Across five files: index (6), story (5), menu (5), drinks (5), accessibility (4). Every one was
+the same URL, so it was a single find-and-replace.
+
+**No reference to SpotHopper remains anywhere in the site.** Photos, video, jobs and now
+reservations have all been moved off. The only thing still on an outside service is ordering
+(order.online) and gift cards (Toast), both of which are deliberate.
+
+If the reservation URL ever changes again, it's the same five HTML files and nothing else — no
+CSS, no JS, no data files:
+
+    grep -rl 'reservations-lyart.vercel.app' *.html | \
+      xargs sed -i 's|https://reservations-lyart.vercel.app/|NEW_URL|g'
